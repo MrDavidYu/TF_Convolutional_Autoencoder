@@ -16,7 +16,7 @@ This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-
 * Output is currently visibly undersaturated.
 
 ## Outputs
-N.B. The input images are 42x42, hence the blurriness. Additionally these outputs are from setting n_epochs to 500, which could be increased for even better results.
+N.B. The input images are 42x42, hence the blurriness. Additionally these outputs are from setting n_epochs to 500, which could be increased for even better results (note the cost function trend).
 
 Inputs:
 <img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/A0.png" width="150" height="150" />
@@ -27,7 +27,9 @@ Outputs:
 <img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/A1.png" width="150" height="150" />
 <img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/B1.png" width="150" height="150" />
 <img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/C1.png" width="150" height="150" />
-
+<br>
+<br>
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/cost.png" height="300" />
 ## How to run
 1. Make sure to create directory `./logs/run1/` to save TensorBoard output. For pushing multiple runs to TensorBoard, simply save additional logs as `./logs/run2/`, `./logs/run3/` etc.
 
