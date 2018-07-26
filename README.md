@@ -1,7 +1,7 @@
 # TF_Convolutional_Autoencoder
 #### _Convolutional autoencoder for encoding/decoding RGB images in TensorFlow_
 
-This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-AutoEncoder tutorial https://github.com/arashsaber/Deep-Convolutional-AutoEncoder for encoding/decoding 3-channel images. The template has been fully commented. I have tested this implementation on rescaled samples from the CelebA dataset from CUHK http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html to produce reasonably decent results.
+This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-AutoEncoder tutorial https://github.com/arashsaber/Deep-Convolutional-AutoEncoder for encoding/decoding 3-channel images. The template has been fully commented. I have tested this implementation on rescaled samples from the CelebA dataset from CUHK http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html to produce reasonably decent results from a short period of training.
 
 **Add on features:**
 * Takes 3-channel images as input instead of MNIST
@@ -16,7 +16,17 @@ This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-
 * Output is currently visibly undersaturated.
 
 ## Outputs
-N.B. The input image is only 42x42 which is why it looks blurry.
+N.B. The input images are 42x42, hence the blurriness. Additionally these outputs are from setting n_epochs to 500, which could be increased for even better results.
+
+Inputs:
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/A0.png" width="150" height="150" />
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/B0.png" width="150" height="150" />
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/C0.png" width="150" height="150" />
+<br>
+Outputs:
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/A1.png" width="150" height="150" />
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/B1.png" width="150" height="150" />
+<img src="https://github.com/MrDavidYu/TF_Convolutional_Autoencoder/blob/master/sample_output/C1.png" width="150" height="150" />
 
 ## How to run
 1. Make sure to create directory `./logs/run1/` to save TensorBoard output. For pushing multiple runs to TensorBoard, simply save additional logs as `./logs/run2/`, `./logs/run3/` etc.
@@ -33,5 +43,5 @@ convert $file -resize 42x42 $file
 done
 ```
 
-5. `python ConvAutoencoder.py`
+5. In root dir, `python ConvAutoencoder.py`
 
