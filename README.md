@@ -33,7 +33,7 @@ Outputs:
 ## How to run
 1. Make sure to create directory `./logs/run1/` to save TensorBoard output. For pushing multiple runs to TensorBoard, simply save additional logs as `./logs/run2/`, `./logs/run3/` etc.
 
-2. Unzip `./CelebF.tar.gz` and save jpegs in ./data/CelebF/
+2. Unzip `./CelebF.tar.gz` and save jpegs in `./data/CelebF/`
 
 3. Either use provided image set or your own. If using your own dataset, I recommend ImageMagick for resizing: https://www.imagemagick.org/script/download.php
 
