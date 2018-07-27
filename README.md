@@ -11,7 +11,7 @@ This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-
 * ReLU activation replaced by LeakyReLU to resolve dying ReLU
 
 **Caveats:**
-* It is highly recommended to perform training on the GPU (Took ~2 hrs to train 500 epochs on a Tesla K80 for CelebF).
+* It is highly recommended to perform training on the GPU (Took 10 min to train 215 epochs on a Tesla K80 for CelebF).
 * The input size can be increased, but during testing OOM errors occured on the K80 for the input size of 84x84. This will be fixed in a later update. For now if you get any OOM errors in tensor allocation, try to reduce the input size.
 * Output is currently visibly undersaturated.
 
