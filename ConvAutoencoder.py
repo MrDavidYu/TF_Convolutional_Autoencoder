@@ -25,7 +25,7 @@ from glob import glob
 # Some important consts
 num_examples = 669
 batch_size = 30
-n_epochs = 500
+n_epochs = 1000
 save_steps = 500  # Number of training batches between checkpoint saves
 
 checkpoint_dir = "./ckpt/"
@@ -33,18 +33,50 @@ model_name = "ConvAutoEnc.model"
 logs_dir = "./logs/run1/"
 
 # Fetch input data (faces/trees/imgs)
-data_dir = "./data/celebF/"
+data_dir = "./data/celebG/"
 data_path = os.path.join(data_dir, '*.jpg')
 data = glob(data_path)
 
 if len(data) == 0:
     raise Exception("[!] No data found in '" + data_path+ "'")
 
+
+'''
+Some util functions from https://github.com/carpedm20/DCGAN-tensorflow
+'''
+
 def path_to_img(path, grayscale = False):
   if (grayscale):
     return scipy.misc.imread(path, flatten = True).astype(np.float)
   else:
     return scipy.misc.imread(path).astype(np.float)
+
+def center_crop(x, crop_h, crop_w,
+                resize_h=64, resize_w=64):
+  if crop_w is None:
+    crop_w = crop_h
+  h, w = x.shape[:2]
+  j = int(round((h - crop_h)/2.))
+  i = int(round((w - crop_w)/2.))
+  return scipy.misc.imresize(
+      x[j:j+crop_h, i:i+crop_w], [resize_h, resize_w])
+
+def transform(image, input_height, input_width, 
+              resize_height=48, resize_width=48, crop=True):
+  if crop:
+    cropped_image = center_crop(
+      image, input_height, input_width, 
+      resize_height, resize_width)
+  else:
+    cropped_image = scipy.misc.imresize(image, [resize_height, resize_width])
+  return np.array(cropped_image)/127.5 - 1.
+
+def autoresize(image_path, input_height, input_width,
+              resize_height=48, resize_width=48,
+              crop=True, grayscale=False):
+  image = path_to_img(image_path, grayscale)
+  return transform(image, input_height, input_width,
+                   resize_height, resize_width, crop)
 
 np.random.shuffle(data)
 imread_img = path_to_img(data[0])  # test read an image
@@ -56,9 +88,10 @@ else:
 
 is_grayscale = (c_dim == 1)
 
-# tf Graph Input
-# face data image of shape 84*84=7056 N.B. originally without the depth 3
-x = tf.placeholder(tf.float32, [None, 42, 42, 3], name='InputData')
+'''
+tf Graph Input
+'''
+x = tf.placeholder(tf.float32, [None, 48, 48, 3], name='InputData')
 
 if __debug__:
     print("Reading input from:" + data_dir)
@@ -66,11 +99,6 @@ if __debug__:
     print("Assigning input tensor of shape:" + str(x.shape))
     print("Writing checkpoints to:" + checkpoint_dir)
     print("Writing TensorBoard logs to:" + logs_dir)
-
-"""
-We start by creating the layers with name scopes so that the graph in
-the tensorboard looks meaningful
-"""
 
 
 # strides = [Batch, Height, Width, Channels]  in default NHWC data_format. Batch and Channels
@@ -109,6 +137,7 @@ def deconv2d(input, name, kshape, n_outputs, strides=[1, 1]):
                  activation_fn=tf.nn.leaky_relu)
         return out
 
+
 # Input to maxpool: [BatchSize, Width1, Height1, Channels]
 # Output of maxpool: [BatchSize, Width2, Height2, Channels]
 #
@@ -116,10 +145,9 @@ def deconv2d(input, name, kshape, n_outputs, strides=[1, 1]):
 # OutWidth = (InWidth - FilterWidth)/Stride + 1
 #
 # The kernel kshape will typically be [1,2,2,1] for a general 
-# RGB image input of [batch_size,64,64,3]
+# RGB image input of [batch_size,48,48,3]
 # kshape is 1 for batch and channels because we don't want to take
 # the maximum over multiple examples of channels.
-
 def maxpool2d(x,name,kshape=[1, 2, 2, 1], strides=[1, 2, 2, 1]):
     with tf.variable_scope(name):
         out = tf.nn.max_pool(x,
@@ -161,53 +189,40 @@ def ConvAutoEncoder(x, name, reuse=False):
     with tf.variable_scope(name) as scope:
         if reuse:
             scope.reuse_variables()
-        """
-        We want to get dimensionality reduction of 11664 to 44656
-        Layers:
-            input --> 84, 84 (7056)
-            conv1 --> kernel size: (5,5), n_filters:25 ???make it small so that it runs fast
-            pool1 --> 42, 42, 25
-            dropout1 --> keeprate 0.8
-            reshape --> 42*42*25
-            FC1 --> 42*42*25, 42*42*5
-            dropout2 --> keeprate 0.8
-            FC2 --> 42*42*5, 8820 --> output is the encoder vars
-            FC3 --> 8820, 42*42*5
-            dropout3 --> keeprate 0.8
-            FC4 --> 42*42*5,42*42*25
-            dropout4 --> keeprate 0.8
-            reshape --> 42, 42, 25
-            deconv1 --> kernel size:(5,5,25), n_filters: 25
-            upsample1 --> 84, 84, 25
-            FullyConnected (outputlayer) -->  84* 84* 25, 84 * 84 *  1
-            reshape --> 84 * 84
-        """
-        input = tf.reshape(x, shape=[-1, 42, 42, 3])
 
-        # coding part
-        c1 = conv2d(input, name='c1', kshape=[7, 7, 3, 25])  # kshape = [k_h, k_w, in_channels, out_chnnels]
-        p1 = maxpool2d(c1, name='p1')
+        input = tf.reshape(x, shape=[-1, 48, 48, 3])
+
+        # kshape = [k_h, k_w, in_channels, out_chnnels]
+        c1 = conv2d(input, name='c1', kshape=[7, 7, 3, 15])         # Input: [48,48,3];  Output: [48,48,15]
+        p1 = maxpool2d(c1, name='p1')                               # Input: [48,48,15]; Output: [24,24,15]
         do1 = dropout(p1, name='do1', keep_rate=0.75)
-        do1 = tf.reshape(do1, shape=[-1, 21*21*25])  # reshape to 1 dimensional (-1 is batch size)
-        fc1 = fullyConnected(do1, name='fc1', output_size=21*21*5)
+        c2 = conv2d(do1, name='c2', kshape=[5, 5, 15, 25])          # Input: [24,24,15]; Output: [24,24,25]
+        p2 = maxpool2d(c2, name='p2')                               # Input: [24,24,25]; Output: [12,12,25]
+        p2 = tf.reshape(p2, shape=[-1, 12*12*25])                   # Input: [12,12,25]; Output: [12*12*25]
+        fc1 = fullyConnected(p2, name='fc1', output_size=12*12*5)   # Input: [12*12*25]; Output: [12*12*5]
         do2 = dropout(fc1, name='do2', keep_rate=0.75)
-        fc2 = fullyConnected(do2, name='fc2', output_size=21*21*3)
+        fc2 = fullyConnected(do2, name='fc2', output_size=12*12*3)  # Input: [12*12*5];  Output: [12*12*3]
+        do3 = dropout(fc2, name='do3', keep_rate=0.75)
+        fc3 = fullyConnected(do3, name='fc3', output_size=64)       # Input: [12*12*3];  Output: [64] --> bottleneck layer
         # Decoding part
-        fc3 = fullyConnected(fc2, name='fc3', output_size=21 * 21 * 5)
-        do3 = dropout(fc3, name='do3', keep_rate=0.75)
-        fc4 = fullyConnected(do3, name='fc4', output_size=21 * 21 * 25)
-        do4 = dropout(fc4, name='do3', keep_rate=0.75)
-        do4 = tf.reshape(do4, shape=[-1, 21, 21, 25])
-        dc1 = deconv2d(do4, name='dc1', kshape=[7,7],n_outputs=25)
-        up1 = upsample(dc1, name='up1', factor=[2, 2])
-        output = fullyConnected(up1, name='output', output_size=42*42*3)
-        # print("output.shape"+str(output.shape))
-        # print("x.shape"+str(x.shape))
+        fc4 = fullyConnected(fc3, name='fc4', output_size=12*12*3)  # Input: [64];       Output: [12*12*3]
+        do4 = dropout(fc4, name='do4', keep_rate=0.75)
+        fc5 = fullyConnected(do4, name='fc5', output_size=12*12*5)  # Input: [12*12*3];  Output: [12*12*5]
+        do5 = dropout(fc5, name='do5', keep_rate=0.75)
+        fc6 = fullyConnected(do5, name='fc6', output_size=21*21*25) # Input: [12*12*5];  Output: [12*12*25]
+        do6 = dropout(fc6, name='do6', keep_rate=0.75)
+        do6 = tf.reshape(do6, shape=[-1, 21, 21, 25])               # Input: [12*12*25]; Output: [12,12,25]
+        dc1 = deconv2d(do6, name='dc1', kshape=[5, 5],n_outputs=15) # Input: [12,12,25]; Output: [12,12,15]
+        up1 = upsample(dc1, name='up1', factor=[2, 2])              # Input: [12,12,15]; Output: [24,24,15]
+        dc2 = deconv2d(up1, name='dc2', kshape=[7, 7],n_outputs=3)  # Input: [24,24,15]; Output: [24,24,3]
+        up2 = upsample(dc2, name='up2', factor=[2, 2])              # Input: [24,24,3];  Output: [48,48,3]
+        output = fullyConnected(up2, name='output', output_size=48*48*3)
+
         with tf.variable_scope('cost'):
             # N.B. reduce_mean is a batch operation! finds the mean across the batch
-            cost = tf.reduce_mean(tf.square(tf.subtract(output, tf.reshape(x,shape=[-1,42*42*3]))))
-        return x, tf.reshape(output,shape=[-1,42,42,3]), cost # returning, input, output and cost
-#   ---------------------------------
+            cost = tf.reduce_mean(tf.square(tf.subtract(output, tf.reshape(x,shape=[-1,48*48*3]))))
+        return x, tf.reshape(output,shape=[-1,48,48,3]), cost # returning, input, output and cost
+
 
 def train_network(x):
 
@@ -248,16 +263,15 @@ def train_network(x):
                 print("epoch " + str(epoch) + " batch " + str(i))
 
                 batch_files = data[i*batch_size:(i+1)*batch_size]  # get the current batch of files
-                # TODO: add functionality to autorescale
-                # batch = [
-                # get_image(batch_file,
-                #         input_height=42,
-                #         input_width=42,
-                #         resize_height=42,
-                #         resize_width=42,
-                #         crop=True,
-                #         grayscale=False) for batch_file in batch_files] # get_image will get image from file dir after applying resize operation. 
-                batch = [path_to_img(batch_file) for batch_file in batch_files]
+
+                batch = [autoresize(batch_file,
+                                        input_height=48,
+                                        input_width=48,
+                                        resize_height=48,
+                                        resize_width=48,
+                                        crop=True,
+                                        grayscale=False) for batch_file in batch_files]
+
                 batch_images = np.array(batch).astype(np.float32)
 
                 # Get cost function from running optimizer
@@ -286,6 +300,7 @@ def save(saver, step, session):
     saver.save(session,
             os.path.join(checkpoint_dir, model_name),
             global_step=step)
+
 
 # Restore from checkpoint
 def restore(saver, session):
