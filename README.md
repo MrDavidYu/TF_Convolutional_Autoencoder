@@ -47,3 +47,6 @@ done
 
 5. In root dir, `python ConvAutoencoder.py`
 
+## Debug
+Here are a list of common problems:
+1. The error(cost) is very high (in the thousands or millions): Check that the input images are fetched properly when transforming batch_files to batch_images etc. This high an error is typical of very large natural differences in MSE of input/output and is not caused by a large number of model parameters.
