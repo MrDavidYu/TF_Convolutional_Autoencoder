@@ -13,7 +13,7 @@ This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-
 **Caveats:**
 * It is highly recommended to perform training on the GPU (Took ~40 min to train 20,000 steps on a Tesla K80 for celebG).
 * The input size can be increased, but during testing OOM errors occured on the K80 for the input size of 84x84. This will be fixed in a later update. For now if you get any OOM errors in tensor allocation, try to reduce the input size.
-* Output is currently visibly undersaturated.
+* Sample output is currently visibly undersaturated owing to noise introduced by dropout and high model bias. Problems should go away with further training.
 
 ## Outputs
 N.B. The input images are 48x48, hence the blurriness. Additionally these outputs are from setting n_epochs to 1000, which could be increased for even better results (note the cost function trend).
@@ -50,5 +50,5 @@ done
 5. In root dir, `python ConvAutoencoder.py`
 
 ## Debug
-Here are a list of common problems:
+Here is a list of common problems:
 1. The error(cost) is very high (in the thousands or millions): Check that the input images are fetched properly when transforming batch_files to batch_images etc. This high an error is typical of very large natural differences in MSE of input/output and is not caused by a large number of model parameters.
