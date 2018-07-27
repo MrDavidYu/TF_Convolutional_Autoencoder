@@ -7,7 +7,7 @@ This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-
 * Takes 3-channel images as input instead of MNIST
 * Training now performs checkpoint saves and restores
 * Both inputs to the encoder and outputs from the decoder are available for viewing in TensorBoard
-* _Input autorescaling (not yet functional)_
+* Input autorescaling
 * ReLU activation replaced by LeakyReLU to resolve dying ReLU
 
 **Caveats:**
@@ -52,3 +52,6 @@ done
 ## Debug
 Here is a list of common problems:
 1. The error(cost) is very high (in the thousands or millions): Check that the input images are fetched properly when transforming batch_files to batch_images etc. This high an error is typical of very large natural differences in MSE of input/output and is not caused by a large number of model parameters.
+
+## Additional References
+Reference https://github.com/carpedm20/DCGAN-tensorflow/blob/master/utils.py for several dynamic image resize functions I have incorporated into my implementation.
