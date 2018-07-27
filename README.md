@@ -1,11 +1,7 @@
 # TF_Convolutional_Autoencoder
 #### _Convolutional autoencoder for encoding/decoding RGB images in TensorFlow with high compression_
 
-This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-AutoEncoder tutorial https://github.com/arashsaber/Deep-Convolutional-AutoEncoder for encoding/decoding 3-channel images. The template has been fully commented. 
-
-I have tested this implementation on rescaled samples from the CelebA dataset from CUHK http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html to produce reasonably decent results from a short period of training. 
-
-The compression ratio of this implementation is 108. That is, for an input tensor of shape [-1, 48, 48, 3], the bottleneck layer has been reduced to a tensor of shape [-1, 64].
+This is a sample template adapted from Arash Saber Tehrani's Deep-Convolutional-AutoEncoder tutorial https://github.com/arashsaber/Deep-Convolutional-AutoEncoder for encoding/decoding 3-channel images. The template has been fully commented. I have tested this implementation on rescaled samples from the CelebA dataset from CUHK http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html to produce reasonably decent results from a short period of training. The compression ratio of this implementation is 108. That is, for an input tensor of shape [-1, 48, 48, 3], the bottleneck layer has been reduced to a tensor of shape [-1, 64].
 
 **Add on features:**
 * Takes 3-channel images as input instead of MNIST
